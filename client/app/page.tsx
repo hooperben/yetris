@@ -2,6 +2,7 @@
 
 import Board from "@/components/board";
 import ConnectWallet from "@/components/connect-wallet";
+import { GameOverDialog } from "@/components/game-over-dialog";
 import Navigation from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import UpcomingBlocks from "@/components/upcoming-blocks";
@@ -31,7 +32,18 @@ export default function Home() {
     rotate,
     softDrop,
     hardDrop,
+    isGameOver,
+    setIsGameOver,
   } = useTetris();
+
+  const handlePlayAgain = () => {
+    setIsGameOver(false);
+    startGame();
+  };
+
+  const handleCloseDialog = () => {
+    setIsGameOver(false);
+  };
 
   if (!isConnected) {
     return (
@@ -140,6 +152,13 @@ export default function Home() {
           ) : null}
         </div>
       </div>
+
+      <GameOverDialog
+        isOpen={isGameOver}
+        onClose={handleCloseDialog}
+        onPlayAgain={handlePlayAgain}
+        score={score}
+      />
 
       <div className="md:hidden flex flex-col">
         {/* Game Area - 80% of non-nav height */}

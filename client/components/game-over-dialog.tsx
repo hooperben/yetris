@@ -1,0 +1,71 @@
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+
+interface GameOverDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onPlayAgain: () => void;
+  score: number;
+  isNewChamp?: boolean;
+}
+
+export function GameOverDialog({
+  isOpen,
+  onClose,
+  onPlayAgain,
+  score,
+  isNewChamp,
+}: GameOverDialogProps) {
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          {isNewChamp ? (
+            <>
+              <DialogTitle className="text-center text-2xl font-bold text-transparent bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text">
+                🎉 Congratulations! 🎉
+              </DialogTitle>
+              <DialogDescription className="text-center text-lg">
+                You have won! What an amazing performance!
+              </DialogDescription>
+            </>
+          ) : (
+            <>
+              <DialogTitle className="text-center text-2xl font-bold text-transparent bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text">
+                Game Over
+              </DialogTitle>
+              <DialogDescription className="text-center text-lg">
+                Well played, but not quite a championship performance.
+              </DialogDescription>
+            </>
+          )}
+        </DialogHeader>
+
+        <div className="text-center py-4">
+          <div className="text-3xl font-bold text-transparent bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text">
+            Final Score: {score.toLocaleString()}
+          </div>
+        </div>
+
+        <DialogFooter className="flex gap-2 sm:gap-2">
+          <Button variant="outline" onClick={onClose} className="flex-1">
+            Close
+          </Button>
+          <Button
+            onClick={onPlayAgain}
+            className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+          >
+            Play Again
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

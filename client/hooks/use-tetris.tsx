@@ -24,6 +24,7 @@ export function useTetris() {
   const [tickSpeed, setTickSpeed] = useState<TickSpeed | null>(null);
   const [gameId, setGameId] = useState<string | null>(null);
   const [isLoadingBlocks, setIsLoadingBlocks] = useState(false);
+  const [isGameOver, setIsGameOver] = useState(false);
 
   const wsRef = useRef<WebSocket | null>(null);
   const [isWsConnected, setIsWsConnected] = useState(false);
@@ -110,17 +111,15 @@ export function useTetris() {
     }
 
     try {
+      // Reset game over state when starting a new game
+      setIsGameOver(false);
+      setScore(0);
+
       // Create message to sign
       const message = `Starting Tetris game at ${Date.now()}`;
 
       // Sign the message
       const signature = await signMessageAsync({ message });
-
-      setScore(0);
-      setIsCommitting(false);
-      setIsPlaying(true);
-      setTickSpeed(TickSpeed.Normal);
-      setIsLoadingBlocks(true);
 
       // Request initial blocks from server with signed message
       wsRef.current.send(
@@ -131,6 +130,15 @@ export function useTetris() {
           signature,
         }),
       );
+
+      // Wait 1 second before starting the game
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      setScore(0);
+      setIsCommitting(false);
+      setIsPlaying(true);
+      setTickSpeed(TickSpeed.Normal);
+      setIsLoadingBlocks(true);
     } catch (error) {
       console.error("Failed to sign message:", error);
       setIsLoadingBlocks(false);
@@ -169,6 +177,7 @@ export function useTetris() {
     if (hasCollisions(board, SHAPES[newBlock].shape, 0, 3)) {
       setIsPlaying(false);
       setTickSpeed(null);
+      setIsGameOver(true);
 
       // Notify server that game is over
       if (wsRef.current && gameId) {
@@ -385,6 +394,8 @@ export function useTetris() {
     nextBlock,
     isWsConnected,
     isLoadingBlocks,
+    isGameOver,
+    setIsGameOver,
     // Mobile control functions
     moveLeft,
     moveRight,
