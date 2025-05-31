@@ -4,9 +4,12 @@ import { Home, Trophy } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Account } from "./account";
+import { useAccount } from "wagmi";
 
 export default function Navigation() {
   const pathname = usePathname();
+
+  const { isConnected } = useAccount();
 
   return (
     <nav className="bg-gradient-to-r from-purple-600 via-pink-500 to-cyan-400 shadow-lg border-b-4 border-yellow-400">
@@ -39,7 +42,7 @@ export default function Navigation() {
               </Link>
             )}
 
-            <Account />
+            {isConnected && <Account />}
           </div>
         </div>
       </div>
