@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: yetroid-deployment
+  labels:
+    app: yetroid
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: yetroid
+  template:
+    metadata:
+      labels:
+        app: yetroid
+    spec:
+      containers:
+        - name: yetroid
+          image: gcr.io/cabs-330704/yetroid:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: yetroid-config
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: yetroid-service
+spec:
+  selector:
+    app: yetroid
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: ClusterIP

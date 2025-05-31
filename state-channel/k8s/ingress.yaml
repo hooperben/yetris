@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: yetroid-ingress
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: yetroid-ip
+    networking.gke.io/managed-certificates: yetroid-ssl-cert
+    kubernetes.io/ingress.class: "gce"
+spec:
+  rules:
+    - host: yetroid.hooper.link
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: yetroid-service
+                port:
+                  number: 80
+---
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: yetroid-ssl-cert
+spec:
+  domains:
+    - yetroid.hooper.link
