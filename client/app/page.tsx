@@ -2,7 +2,6 @@
 
 import Board from "@/components/board";
 import UpcomingBlocks from "@/components/upcoming-blocks";
-import HighScores from "@/components/high-scores";
 import { useTetris } from "@/hooks/use-tetris";
 
 export default function Home() {
@@ -19,7 +18,6 @@ export default function Home() {
         ) : (
           <>
             <button onClick={startGame}>New Game</button>
-            <HighScores />
           </>
         )}
       </div>
