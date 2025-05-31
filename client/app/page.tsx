@@ -1,8 +1,18 @@
 "use client";
 
 import Board from "@/components/board";
+import Navigation from "@/components/navigation";
+import { Button } from "@/components/ui/button";
 import UpcomingBlocks from "@/components/upcoming-blocks";
 import { useTetris } from "@/hooks/use-tetris";
+import {
+  ArrowDownFromLine,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  RefreshCcw,
+} from "lucide-react";
 
 export default function Home() {
   const {
@@ -12,7 +22,6 @@ export default function Home() {
     score,
     nextBlock,
     isWsConnected,
-    isLoadingBlocks,
     moveLeft,
     moveRight,
     rotate,
@@ -21,163 +30,205 @@ export default function Home() {
   } = useTetris();
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+      <Navigation />
+
       {/* Desktop Layout */}
       <div className="hidden md:block">
-        <div className="text-foreground">
-          <div className="flex flex-col">
-            <h1 className="text-xl font-bold text-center text-white mb-2">
-              Yetris
-            </h1>
-
-            <div className="flex flex-row">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex justify-center items-start gap-8">
+            <div className="flex flex-col items-center">
               <Board currentBoard={board} />
+            </div>
+            {/* Side Panel */}
+            <div className="flex flex-col gap-4">
+              {/* Score */}
+              <div className="text-center bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-xl p-4 border-2 border-yellow-400/50 shadow-xl">
+                <h2 className="text-xl font-bold text-transparent bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text">
+                  SCORE
+                </h2>
+                <div className="text-4xl font-bold text-white">
+                  {score.toLocaleString()}
+                </div>
+              </div>
 
-              <div className="flex flex-col">
-                {!isWsConnected && (
-                  <p className="text-white">Connecting to server...</p>
-                )}
-                {isPlaying ? (
-                  <div>
-                    {isLoadingBlocks ? (
-                      <p className="text-white">Loading next block...</p>
-                    ) : nextBlock ? (
-                      <UpcomingBlocks upcomingBlocks={[nextBlock]} />
-                    ) : (
-                      <p className="text-white">No upcoming blocks</p>
-                    )}
-                  </div>
-                ) : (
+              {/* Next Block */}
+              {isPlaying && nextBlock && (
+                <UpcomingBlocks upcomingBlocks={[nextBlock]} />
+              )}
+
+              {/* Game Controls */}
+              <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-xl p-6 border-2 border-purple-400/50 shadow-xl">
+                {!isPlaying ? (
                   <button
                     onClick={startGame}
                     disabled={!isWsConnected}
-                    className="px-6 text-base font-semibold bg-primary text-primary-foreground border-none rounded-md cursor-pointer shadow-md hover:bg-blue-700 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-4 rounded-xl font-bold text-xl shadow-[0_0_20px_rgba(168,85,247,0.6)] border-2 border-purple-300 hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    New Game
+                    NEW GAME
                   </button>
+                ) : (
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-bold text-transparent bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text">
+                      CONTROLS
+                    </h3>
+                    <div className="text-sm text-gray-300 space-y-1">
+                      <div>← → Move</div>
+                      <div>↑ Rotate</div>
+                      <div>↓ Soft Drop</div>
+                      <div>Space Hard Drop</div>
+                    </div>
+                  </div>
                 )}
-
-                <div className="w-48 flex flex-col gap-2">
-                  <h2 className="text-lg font-semibold text-white mb-2">
-                    Score: {score}
-                  </h2>
-                </div>
               </div>
+
+              {/* Connection Status */}
+              {!isWsConnected && (
+                <div className="bg-gradient-to-br from-yellow-800/80 to-orange-800/80 rounded-xl p-4 border-2 border-yellow-400/50">
+                  <p className="text-yellow-300 font-semibold">
+                    Connecting to server...
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Mobile Layout */}
-      <div className="md:hidden h-screen flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="flex justify-between items-center p-2 bg-gray-800 flex-shrink-0">
-          <h1 className="text-xl font-bold">Yetris</h1>
-          {!isPlaying ? (
-            <button
-              onClick={startGame}
-              disabled={!isWsConnected}
-              className="px-3 py-1 bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-            >
-              New Game
-            </button>
-          ) : (
-            <div className="flex items-center">
-              {isLoadingBlocks ? (
-                <p className="text-xs">Loading...</p>
-              ) : nextBlock ? (
-                <div className="bg-gray-700 rounded scale-75">
-                  <UpcomingBlocks upcomingBlocks={[nextBlock]} />
-                </div>
-              ) : (
-                <p className="text-xs">No next block</p>
-              )}
+      <div className="max-h-[100px] md:hidden">
+        <div className="flex flex-row justify-center gap-4 p-2 max-h-[100px] items-center">
+          {/* Score */}
+          <div className="flex flex-row bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-lg p-3 border border-yellow-400/50 items-center">
+            <div className="text-md text-yellow-300 mr-2">SCORE: </div>
+            <div className="text-md font-bold text-white">
+              {score.toLocaleString()}
             </div>
-          )}
+          </div>
+
+          {/* Next Block */}
+          {isPlaying && nextBlock ? (
+            <div className="flex justify-center">
+              <div className="scale-75 origin-center">
+                <UpcomingBlocks upcomingBlocks={[nextBlock]} />
+              </div>
+            </div>
+          ) : !isPlaying ? (
+            <div className="rounded-lg">
+              <Button
+                onClick={startGame}
+                disabled={!isWsConnected}
+                className="w-full bg-gradient-to-r from-green-400 to-green-600 text-white px-2 py-2 rounded-lg font-bold text-sm shadow-[0_0_15px_rgba(34,197,94,0.6)] border border-green-300 disabled:opacity-50"
+              >
+                NEW GAME
+              </Button>
+            </div>
+          ) : null}
         </div>
+      </div>
 
-        {/* Score and Next Block Row */}
-        {/* <div className="flex justify-between items-center p-3 bg-gray-800 border-t border-gray-700 flex-shrink-0">
-          <div className="text-base font-semibold">Score: {score}</div>
-          {isPlaying && (
-            
-          )}
-        </div> */}
-
-        {/* Game Board - Fixed height to prevent overflow */}
+      <div className="md:hidden flex flex-col">
+        {/* Game Area - 80% of non-nav height */}
         <div
-          className="flex items-center justify-center p-2 flex-shrink-0"
-          style={{ height: "calc(100vh - 280px)" }}
+          className="flex bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900"
+          style={{ height: "60vh" }}
         >
-          <div className="max-h-full max-w-xs w-full flex items-center justify-center">
+          {/* Game Board - Left side */}
+          <div className="flex-1 flex items-center justify-center overflow-hidden">
             <div className="scale-75 origin-center">
               <Board currentBoard={board} />
             </div>
           </div>
         </div>
 
-        {/* Mobile Controls - Always visible at bottom */}
-        {!isPlaying && (
-          <div className="p-3 bg-gray-800 flex-shrink-0">
-            {/* Top row - Rotate and Hard Drop */}
-            <div className="flex justify-center gap-3 mb-3">
-              <button
-                onTouchStart={(e) => {
-                  e.preventDefault();
-                  rotate?.();
-                }}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold active:bg-blue-700 touch-manipulation text-sm"
-              >
-                ↻ ROTATE
-              </button>
-              <button
-                onTouchStart={(e) => {
-                  e.preventDefault();
-                  hardDrop?.();
-                }}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg font-semibold active:bg-red-700 touch-manipulation text-sm"
-              >
-                ⬇
-              </button>
-            </div>
+        {/* Mobile Controls - 20% of non-nav height */}
+        <div className="border-t-1 border-purple-400">
+          {isPlaying && (
+            <div className="flex flex-row justify-center w-full">
+              <div className="h-full flex flex-col justify-center p-2">
+                <div className="flex justify-center">
+                  <Button
+                    size="icon"
+                    className="size-12 border"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      rotate?.();
+                    }}
+                  >
+                    <ChevronUp />
+                  </Button>
+                </div>
 
-            {/* Bottom row - Movement controls */}
-            <div className="flex justify-center gap-2">
-              <button
-                onTouchStart={(e) => {
-                  e.preventDefault();
-                  moveLeft?.();
-                }}
-                className="bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold active:bg-gray-700 touch-manipulation flex-1 max-w-20 text-lg"
-              >
-                ←
-              </button>
-              <button
-                onTouchStart={(e) => {
-                  e.preventDefault();
-                  softDrop?.();
-                }}
-                className="bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold active:bg-gray-700 touch-manipulation flex-1 max-w-20 text-lg"
-              >
-                ⬇
-              </button>
-              <button
-                onTouchStart={(e) => {
-                  e.preventDefault();
-                  moveRight?.();
-                }}
-                className="bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold active:bg-gray-700 touch-manipulation flex-1 max-w-20 text-lg"
-              >
-                →
-              </button>
-            </div>
+                <div className="flex flex-row justify-center gap-12 my-2">
+                  <Button
+                    size="icon"
+                    className="size-12 border"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      moveLeft?.();
+                    }}
+                  >
+                    <ChevronLeft />
+                  </Button>
+                  <Button
+                    size="icon"
+                    className="size-12 border"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      moveRight?.();
+                    }}
+                  >
+                    <ChevronRight />
+                  </Button>
+                </div>
 
-            {/* Connection status */}
-            {!isWsConnected && (
-              <p className="text-center text-yellow-400 mt-2 text-xs">
-                Connecting to server...
-              </p>
-            )}
+                <div className="flex justify-center">
+                  <Button
+                    size="icon"
+                    className="size-12 border"
+                    onTouchStart={(e) => {
+                      e.preventDefault();
+                      softDrop?.();
+                    }}
+                  >
+                    <ChevronDown />
+                  </Button>
+                </div>
+              </div>
+              <div className="w-24" />
+              <div className="flex items-center">
+                <div className="flex justify-center gap-4">
+                  <Button
+                    size="icon"
+                    className="size-12 border"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      hardDrop?.();
+                    }}
+                  >
+                    <ArrowDownFromLine />
+                  </Button>
+                  <Button
+                    size="icon"
+                    className="size-12 border"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      rotate?.();
+                    }}
+                  >
+                    <RefreshCcw />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Connection Status */}
+        {!isWsConnected && (
+          <div className="absolute bottom-0 left-0 right-0 bg-yellow-600/90 text-center py-1">
+            <p className="text-yellow-100 font-semibold text-xs">
+              Connecting to server...
+            </p>
           </div>
         )}
       </div>

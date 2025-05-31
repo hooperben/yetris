@@ -1,4 +1,4 @@
-import { BoardShape } from "@/types";
+import type { BoardShape } from "@/types";
 import Cell from "@/components/cell";
 
 interface BoardProps {
@@ -8,43 +8,32 @@ interface BoardProps {
 
 const Board = ({ currentBoard, isGameOver }: BoardProps) => {
   return (
-    <div className="relative border-2 border-border rounded-xl select-none mx-auto bg-background shadow-lg p-4 overflow-hidden">
-      {/* Glass effect overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-transparent to-white/[0.03] pointer-events-none rounded-lg" />
+    <div className="relative border-4 border-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 rounded-xl select-none mx-auto bg-gray-900 shadow-2xl p-4 overflow-hidden">
+      {/* Ultra bright border glow */}
+      <div className="absolute -inset-1 bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 rounded-xl blur opacity-75 animate-pulse" />
 
-      {/* Grid overlay */}
-      <div className="absolute inset-4 z-5 pointer-events-none">
-        {currentBoard.map((row, rowIndex) => (
-          <div className="flex" key={`grid-${rowIndex}`}>
-            {row.map((_, colIndex) => (
-              <div
-                key={`grid-${rowIndex}-${colIndex}`}
-                className="border border-border/30 aspect-square flex-1"
-              />
-            ))}
-          </div>
-        ))}
-      </div>
+      {/* Inner container */}
+      <div className="relative bg-gray-900 rounded-lg p-2">
+        {/* Game over overlay */}
+        {isGameOver && (
+          <>
+            <div className="absolute inset-0 bg-black/80 z-10 rounded-lg" />
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-4xl font-bold text-transparent bg-gradient-to-r from-red-400 to-pink-400 bg-clip-text z-20 drop-shadow-lg animate-pulse">
+              GAME OVER
+            </div>
+          </>
+        )}
 
-      {/* Game over overlay */}
-      {isGameOver && (
-        <>
-          <div className="absolute inset-0 bg-black/70 z-10" />
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-4xl font-bold text-white z-20 drop-shadow-lg">
-            Game Over
-          </div>
-        </>
-      )}
-
-      {/* Board grid */}
-      <div className="relative z-0">
-        {currentBoard.map((row, rowIndex) => (
-          <div className="flex" key={rowIndex}>
-            {row.map((cell, colIndex) => (
-              <Cell key={`${rowIndex}-${colIndex}`} type={cell} />
-            ))}
-          </div>
-        ))}
+        {/* Board grid */}
+        <div className="relative z-0 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-1">
+          {currentBoard.map((row, rowIndex) => (
+            <div className="flex" key={rowIndex}>
+              {row.map((cell, colIndex) => (
+                <Cell key={`${rowIndex}-${colIndex}`} type={cell} />
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
