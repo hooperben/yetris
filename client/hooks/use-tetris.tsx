@@ -149,6 +149,7 @@ export function useTetris() {
           JSON.stringify({
             type: "gameOver",
             gameId,
+            score, // TODO this is insecure
           }),
         );
       }

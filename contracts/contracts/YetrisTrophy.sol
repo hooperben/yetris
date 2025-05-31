@@ -12,6 +12,8 @@ contract YetrisTrophy is ERC721, AccessControl {
 
     uint256 private _currentSupply;
 
+    uint256 public highScore;
+
     constructor() ERC721("YetrisTrophy", "CROWN") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
@@ -23,7 +25,10 @@ contract YetrisTrophy is ERC721, AccessControl {
         return METADATA_URI;
     }
 
-    function coronation(address to) external onlyRole(KING_MAKER) {
+    function coronation(
+        address to,
+        uint256 newHigh
+    ) external onlyRole(KING_MAKER) {
         if (_currentSupply == 0) {
             // Mint the token if it doesn't exist
             _mint(to, TOKEN_ID);
@@ -33,6 +38,8 @@ contract YetrisTrophy is ERC721, AccessControl {
             address currentOwner = ownerOf(TOKEN_ID);
             _transfer(currentOwner, to, TOKEN_ID);
         }
+
+        highScore = newHigh;
     }
 
     function totalSupply() external view returns (uint256) {
