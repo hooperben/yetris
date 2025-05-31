@@ -2,6 +2,7 @@
 
 import Navigation from "@/components/navigation";
 import { Crown } from "lucide-react";
+import Link from "next/link";
 
 // Mock leaderboard data
 const leaderboardData = [{ rank: 1, name: "TETRIS_MASTER", score: 999999 }];
@@ -38,7 +39,7 @@ export default function Leaderboard() {
 
         {/* Leaderboard */}
         <div className="max-w-4xl mx-auto space-y-4">
-          {leaderboardData.map((player, index) => (
+          {leaderboardData.map((player) => (
             <div
               key={player.rank}
               className={`relative bg-gradient-to-r ${getRankColors(
@@ -103,12 +104,12 @@ export default function Leaderboard() {
             <p className="text-gray-300 mb-6">
               Start playing now and you could take the crown.
             </p>
-            <a
+            <Link
               href="/"
               className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-4 rounded-xl font-bold text-xl shadow-[0_0_20px_rgba(168,85,247,0.6)] border-2 border-purple-300 hover:scale-105 transition-all duration-200"
             >
               PLAY NOW
-            </a>
+            </Link>
           </div>
         </div>
       </div>
