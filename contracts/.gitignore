@@ -15,3 +15,5 @@
 
 # Typechain output
 /types
+
+*.env
