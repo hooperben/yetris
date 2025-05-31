@@ -91,6 +91,7 @@ type Action = {
   type: "start" | "drop" | "commit" | "move";
   newBoard?: BoardShape;
   newBlock?: Block;
+  firstBlock?: Block;
   isPressingLeft?: boolean;
   isPressingRight?: boolean;
   isRotating?: boolean;
@@ -101,13 +102,13 @@ function boardReducer(state: BoardState, action: Action): BoardState {
 
   switch (action.type) {
     case "start":
-      const firstBlock = getRandomBlock();
+      const startingBlock = action.firstBlock || getRandomBlock();
       return {
         board: getEmptyBoard(),
         droppingRow: 0,
         droppingColumn: 3,
-        droppingBlock: firstBlock,
-        droppingShape: SHAPES[firstBlock].shape,
+        droppingBlock: startingBlock,
+        droppingShape: SHAPES[startingBlock].shape,
       };
     case "drop":
       newState.droppingRow++;

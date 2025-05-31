@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { Block, BlockShape, BoardShape, EmptyCell, SHAPES } from "@/types";
 import { useInterval } from "@/hooks/use-interval";
 import {
@@ -6,7 +6,6 @@ import {
   hasCollisions,
   BOARD_HEIGHT,
   getEmptyBoard,
-  getRandomBlock,
 } from "@/hooks/use-tetris-board";
 
 enum TickSpeed {
@@ -22,25 +21,96 @@ export function useTetris() {
   const [isCommitting, setIsCommitting] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [tickSpeed, setTickSpeed] = useState<TickSpeed | null>(null);
+  const [gameId, setGameId] = useState<string | null>(null);
+  const [isLoadingBlocks, setIsLoadingBlocks] = useState(false);
+
+  const wsRef = useRef<WebSocket | null>(null);
+  const [isWsConnected, setIsWsConnected] = useState(false);
 
   const [
     { board, droppingRow, droppingColumn, droppingBlock, droppingShape },
     dispatchBoardState,
   ] = useTetrisBoard();
 
+  // WebSocket connection setup
+  useEffect(() => {
+    const ws = new WebSocket("ws://localhost:8000"); // Update with your websocket URL
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      console.log("WebSocket connected");
+      setIsWsConnected(true);
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      handleWebSocketMessage(data);
+    };
+
+    ws.onclose = () => {
+      console.log("WebSocket disconnected");
+      setIsWsConnected(false);
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []);
+
+  const handleWebSocketMessage = useCallback(
+    (data: any) => {
+      switch (data.type) {
+        case "gameStarted":
+          const { gameId: newGameId, upcomingBlocks: initialBlocks } = data;
+          setGameId(newGameId);
+          setUpcomingBlocks(initialBlocks);
+          setIsLoadingBlocks(false);
+          // Start with the first block (index 0)
+          dispatchBoardState({
+            type: "start",
+            firstBlock: initialBlocks[0],
+          });
+          break;
+
+        case "moveCompleted":
+          const { upcomingBlocks: updatedBlocks } = data;
+          console.log("updatedBlocks:", updatedBlocks);
+          setUpcomingBlocks(updatedBlocks);
+          setIsLoadingBlocks(false);
+          break;
+
+        case "error":
+          console.error("WebSocket error:", data.message);
+          setIsLoadingBlocks(false);
+          break;
+      }
+    },
+    [dispatchBoardState],
+  );
+
   const startGame = useCallback(() => {
-    const startingBlocks = [
-      getRandomBlock(),
-      getRandomBlock(),
-      getRandomBlock(),
-    ];
+    if (!isWsConnected || !wsRef.current) {
+      console.error("WebSocket not connected");
+      return;
+    }
+
     setScore(0);
-    setUpcomingBlocks(startingBlocks);
     setIsCommitting(false);
     setIsPlaying(true);
     setTickSpeed(TickSpeed.Normal);
-    dispatchBoardState({ type: "start" });
-  }, [dispatchBoardState]);
+    setIsLoadingBlocks(true);
+
+    // Request initial blocks from server
+    wsRef.current.send(
+      JSON.stringify({
+        type: "startGame",
+      }),
+    );
+  }, [isWsConnected]);
 
   const commitPosition = useCallback(() => {
     if (!hasCollisions(board, droppingShape, droppingRow + 1, droppingColumn)) {
@@ -66,17 +136,37 @@ export function useTetris() {
       }
     }
 
-    const newUpcomingBlocks = structuredClone(upcomingBlocks) as Block[];
-    const newBlock = newUpcomingBlocks.pop() as Block;
-    newUpcomingBlocks.unshift(getRandomBlock());
+    // Use the next block (index 1) as the new falling block
+    const newBlock = upcomingBlocks[1];
 
     if (hasCollisions(board, SHAPES[newBlock].shape, 0, 3)) {
       setIsPlaying(false);
       setTickSpeed(null);
+
+      // Notify server that game is over
+      if (wsRef.current && gameId) {
+        wsRef.current.send(
+          JSON.stringify({
+            type: "gameOver",
+            gameId,
+          }),
+        );
+      }
     } else {
       setTickSpeed(TickSpeed.Normal);
+      setIsLoadingBlocks(true);
+
+      // Request next block from server
+      if (wsRef.current && gameId) {
+        wsRef.current.send(
+          JSON.stringify({
+            type: "moveComplete",
+            gameId,
+          }),
+        );
+      }
     }
-    setUpcomingBlocks(newUpcomingBlocks);
+
     setScore((prevScore) => prevScore + getPoints(numCleared));
     dispatchBoardState({
       type: "commit",
@@ -92,7 +182,7 @@ export function useTetris() {
     droppingRow,
     droppingShape,
     upcomingBlocks,
-    score,
+    gameId,
   ]);
 
   const gameTick = useCallback(() => {
@@ -216,12 +306,16 @@ export function useTetris() {
     );
   }
 
+  const nextBlock = upcomingBlocks.length > 1 ? upcomingBlocks[1] : null;
+
   return {
     board: renderedBoard,
     startGame,
     isPlaying,
     score,
-    upcomingBlocks,
+    nextBlock,
+    isWsConnected,
+    isLoadingBlocks,
   };
 }
 

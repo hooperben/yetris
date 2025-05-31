@@ -8,15 +8,31 @@ export interface TetrisWebSocket extends WebSocket {
   channelId?: string;
 }
 
+// Import Block enum - you'll need to copy this from your client types
+enum Block {
+  I = "I",
+  J = "J",
+  L = "L",
+  O = "O",
+  S = "S",
+  T = "T",
+  Z = "Z",
+}
+
 // Game state storage
 interface GameState {
   gameId: string;
   playerId: string;
-  currentState: number[];
+  upcomingBlocks: Block[];
   isActive: boolean;
 }
 
 const games = new Map<string, GameState>();
+
+function getRandomBlock(): Block {
+  const blockValues = Object.values(Block);
+  return blockValues[Math.floor(Math.random() * blockValues.length)] as Block;
+}
 
 async function handleWebSocketMessage(
   ws: TetrisWebSocket,
@@ -29,14 +45,14 @@ async function handleWebSocketMessage(
       // Generate a new game ID
       const gameId = randomBytes(8).toString("hex");
 
-      // Create initial game state
-      const initialState = [1, 2];
+      // Create initial upcoming blocks (just 2 to start - current and next)
+      const initialBlocks = [getRandomBlock(), getRandomBlock()];
 
       // Store the game
       games.set(gameId, {
         gameId,
         playerId: ws.playerId,
-        currentState: initialState,
+        upcomingBlocks: initialBlocks,
         isActive: true,
       });
 
@@ -45,7 +61,7 @@ async function handleWebSocketMessage(
         JSON.stringify({
           type: "gameStarted",
           gameId,
-          gameState: initialState,
+          upcomingBlocks: initialBlocks,
         }),
       );
 
@@ -53,7 +69,7 @@ async function handleWebSocketMessage(
     }
 
     case "moveComplete": {
-      console.log("move completed");
+      console.log("next block requested");
 
       const { gameId } = data;
       if (!gameId) {
@@ -97,12 +113,13 @@ async function handleWebSocketMessage(
         return;
       }
 
-      // Generate next state: [lastElement, lastElement + 1]
-      const lastElement = game.currentState[game.currentState.length - 1];
-      const newState = [lastElement, lastElement + 1];
+      // Add one new random block to the end
+      game.upcomingBlocks.shift();
+      game.upcomingBlocks.push(getRandomBlock());
+
+      console.log("current blocks: ", game.upcomingBlocks);
 
       // Update stored game state
-      game.currentState = newState;
       games.set(gameId, game);
 
       // Send response back to client
@@ -110,7 +127,7 @@ async function handleWebSocketMessage(
         JSON.stringify({
           type: "moveCompleted",
           gameId,
-          gameState: newState,
+          upcomingBlocks: game.upcomingBlocks,
         }),
       );
 
@@ -161,7 +178,6 @@ async function handleWebSocketMessage(
         JSON.stringify({
           type: "gameEnded",
           gameId,
-          finalState: game.currentState,
         }),
       );
 

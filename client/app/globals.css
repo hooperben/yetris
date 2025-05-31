@@ -262,13 +262,14 @@ button:active {
   box-shadow: 0 4px 6px var(--shadow-color);
 }
 
-.upcoming > div {
+.upcoming-block {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.upcoming .row {
+.upcoming-row {
+  display: flex;
   justify-content: center;
 }
 
