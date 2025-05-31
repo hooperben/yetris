@@ -38,7 +38,9 @@ export function useTetris() {
 
   // WebSocket connection setup
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8000"); // Update with your websocket URL
+    const ws = new WebSocket(
+      process.env.NEXT_PUBLIC_BACKEND_SOCKET_URL ?? "ws://localhost:8000",
+    ); // Update with your websocket URL
     wsRef.current = ws;
 
     ws.onopen = () => {
