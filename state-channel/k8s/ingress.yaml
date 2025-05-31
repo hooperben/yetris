@@ -6,6 +6,10 @@ metadata:
     kubernetes.io/ingress.global-static-ip-name: yetroid-ip
     networking.gke.io/managed-certificates: yetroid-ssl-cert
     kubernetes.io/ingress.class: "gce"
+    # WebSocket-specific annotations
+    cloud.google.com/timeout-sec: "3600" # 1 hour timeout
+    cloud.google.com/connection-draining-timeout-sec: "300"
+    cloud.google.com/backend-config: '{"default": "yetroid-backend-config"}'
 spec:
   rules:
     - host: yetroid.hooper.link
