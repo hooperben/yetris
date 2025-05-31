@@ -137,7 +137,7 @@ async function handleWebSocketMessage(
     case "gameOver": {
       console.log("game over");
 
-      const { gameId } = data;
+      const { gameId, score } = data;
       if (!gameId) {
         ws.send(
           JSON.stringify({
@@ -149,6 +149,7 @@ async function handleWebSocketMessage(
       }
 
       const game = games.get(gameId);
+
       if (!game) {
         ws.send(
           JSON.stringify({

@@ -4,12 +4,20 @@ import {
 } from "@erc7824/nitrolite";
 import WebSocket from "ws";
 import { walletClient } from "../constants";
+import { env } from "../constants/env";
+
+let brokerWS: WebSocket | null;
+
+// Get broker WebSocket connection
+export function getBrokerWebSocket(): WebSocket | null {
+  return brokerWS;
+}
 
 export const getAuthMessage = async () => {
   const authRequestMsg = await createAuthRequestMessage({
     wallet: walletClient.account.address,
     participant: walletClient.account.address,
-    app_name: "http://localhost:3000/",
+    app_name: env.APP_NAME,
     expire: (Math.floor(Date.now() / 1000) + 3600).toString(), // 1 hour expiration
     scope: "console",
     application: walletClient.account.address,
@@ -49,7 +57,7 @@ export const eip712MessageSigner = async (data: any) => {
     const signature = await walletClient.signTypedData({
       account: walletClient.account!,
       domain: {
-        name: "http://localhost:3000/",
+        name: env.APP_NAME,
       },
       types: {
         EIP712Domain: [{ name: "name", type: "string" }],
@@ -80,6 +88,7 @@ export const eip712MessageSigner = async (data: any) => {
 
 export const runNitroWS = () => {
   const ws = new WebSocket("wss://clearnet.yellow.com/ws");
+  brokerWS = ws;
 
   ws.onopen = async () => {
     console.log("WebSocket connection established");
