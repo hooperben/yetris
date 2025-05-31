@@ -1,12 +1,28 @@
-import Tetris from "@/components/tetris";
+"use client";
+
+import Board from "@/components/board";
+import UpcomingBlocks from "@/components/upcoming-blocks";
+import HighScores from "@/components/high-scores";
+import { useTetris } from "@/hooks/use-tetris";
 
 export default function Home() {
+  const { board, startGame, isPlaying, score, upcomingBlocks } = useTetris();
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-gray-900">
-      <h1 className="text-4xl font-bold text-center mb-6 text-white font-mono tracking-tight">
-        Yetris
-      </h1>
-      <Tetris />
-    </main>
+    <div className="app">
+      <h1>Tetris</h1>
+      <Board currentBoard={board} />
+      <div className="controls">
+        <h2>Score: {score}</h2>
+        {isPlaying ? (
+          <UpcomingBlocks upcomingBlocks={upcomingBlocks} />
+        ) : (
+          <>
+            <button onClick={startGame}>New Game</button>
+            <HighScores />
+          </>
+        )}
+      </div>
+    </div>
   );
 }
