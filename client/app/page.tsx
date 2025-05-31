@@ -1,103 +1,216 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+
+interface GameState {
+  gameId: string | null;
+  currentState: number[] | null;
+  isActive: boolean;
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [connected, setConnected] = useState(false);
+  const [gameState, setGameState] = useState<GameState>({
+    gameId: null,
+    currentState: null,
+    isActive: false,
+  });
+  const [messages, setMessages] = useState<string[]>([]);
+  const wsRef = useRef<WebSocket | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    // Connect to WebSocket
+    const ws = new WebSocket("ws://localhost:8000");
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      setConnected(true);
+      addMessage("Connected to WebSocket");
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        addMessage(`Received: ${JSON.stringify(data, null, 2)}`);
+
+        // Handle different message types
+        switch (data.type) {
+          case "gameStarted":
+            setGameState({
+              gameId: data.gameId,
+              currentState: data.gameState,
+              isActive: true,
+            });
+            break;
+          case "moveCompleted":
+            setGameState((prev) => ({
+              ...prev,
+              currentState: data.gameState,
+            }));
+            break;
+          case "gameEnded":
+            setGameState((prev) => ({
+              ...prev,
+              isActive: false,
+            }));
+            break;
+          case "error":
+            console.error("WebSocket error:", data.message);
+            break;
+        }
+      } catch (error) {
+        console.error("Error parsing message:", error);
+      }
+    };
+
+    ws.onclose = () => {
+      setConnected(false);
+      addMessage("Disconnected from WebSocket");
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+      addMessage("WebSocket error occurred");
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []);
+
+  const addMessage = (message: string) => {
+    setMessages((prev) => [
+      ...prev,
+      `[${new Date().toLocaleTimeString()}] ${message}`,
+    ]);
+  };
+
+  const sendMessage = (message: object) => {
+    if (wsRef.current && connected) {
+      wsRef.current.send(JSON.stringify(message));
+      addMessage(`Sent: ${JSON.stringify(message, null, 2)}`);
+    } else {
+      addMessage("Not connected to WebSocket");
+    }
+  };
+
+  const handleStartGame = () => {
+    sendMessage({ type: "startGame" });
+  };
+
+  const handleMoveComplete = () => {
+    if (!gameState.gameId) {
+      addMessage("No active game - start a game first");
+      return;
+    }
+    sendMessage({
+      type: "moveComplete",
+      gameId: gameState.gameId,
+    });
+  };
+
+  const handleGameOver = () => {
+    if (!gameState.gameId) {
+      addMessage("No active game - start a game first");
+      return;
+    }
+    sendMessage({
+      type: "gameOver",
+      gameId: gameState.gameId,
+    });
+  };
+
+  const clearMessages = () => {
+    setMessages([]);
+  };
+
+  return (
+    <div className="flex flex-col p-6 max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6">Yetris - WebSocket Test</h1>
+
+      {/* Connection Status */}
+      <div className="mb-6">
+        <div
+          className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+            connected
+              ? "bg-green-100 text-green-800"
+              : "bg-red-100 text-red-800"
+          }`}
+        >
+          {connected ? "🟢 Connected" : "🔴 Disconnected"}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+      </div>
+
+      {/* Game State Display */}
+      <div className="mb-6 p-4 bg-gray-100 rounded-lg">
+        <h2 className="text-lg font-semibold mb-2">Current Game State</h2>
+        <div className="space-y-2">
+          <div>
+            <strong>Game ID:</strong> {gameState.gameId || "None"}
+          </div>
+          <div>
+            <strong>State:</strong>{" "}
+            {gameState.currentState
+              ? JSON.stringify(gameState.currentState)
+              : "None"}
+          </div>
+          <div>
+            <strong>Active:</strong> {gameState.isActive ? "Yes" : "No"}
+          </div>
+        </div>
+      </div>
+
+      {/* Control Buttons */}
+      <div className="mb-6 space-x-4">
+        <button
+          onClick={handleStartGame}
+          disabled={!connected}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          Start Game
+        </button>
+
+        <button
+          onClick={handleMoveComplete}
+          disabled={!connected || !gameState.gameId || !gameState.isActive}
+          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          Move Complete
+        </button>
+
+        <button
+          onClick={handleGameOver}
+          disabled={!connected || !gameState.gameId || !gameState.isActive}
+          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          Game Over
+        </button>
+      </div>
+
+      {/* Message Log */}
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-semibold">Message Log</h2>
+          <button
+            onClick={clearMessages}
+            className="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+          >
+            Clear Log
+          </button>
+        </div>
+
+        <div className="h-96 overflow-y-auto bg-black text-green-400 p-4 rounded-lg font-mono text-sm">
+          {messages.length === 0 ? (
+            <div className="text-gray-500">No messages yet...</div>
+          ) : (
+            messages.map((message, index) => (
+              <div key={index} className="mb-2 whitespace-pre-wrap">
+                {message}
+              </div>
+            ))
+          )}
+        </div>
+      </div>
     </div>
   );
 }

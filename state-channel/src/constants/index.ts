@@ -1,10 +1,7 @@
-import { NitroliteClient, NitroliteClientConfig } from "@erc7824/nitrolite";
 import { createPublicClient, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { polygon } from "viem/chains";
 import "dotenv/config";
-
-console.log(process.env.PRIVATE_KEY!);
 
 const wallet = privateKeyToAccount(process.env.PRIVATE_KEY! as `0x${string}`);
 export const walletClient = createWalletClient({
