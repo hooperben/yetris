@@ -2,6 +2,8 @@ import { HardhatUserConfig, configVariable } from "hardhat/config";
 
 import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
 
+import "dotenv/config";
+
 const config: HardhatUserConfig = {
   /*
    * In Hardhat 3, plugins are defined as part of the Hardhat config instead of
@@ -92,6 +94,12 @@ const config: HardhatUserConfig = {
       chainType: "l1",
       url: configVariable("SEPOLIA_RPC_URL"),
       accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
+    },
+    polygon: {
+      type: "http",
+      chainType: "l1",
+      url: process.env.POLYGON_RPC_URL!,
+      accounts: [process.env.PRIVATE_KEY!],
     },
   },
 };

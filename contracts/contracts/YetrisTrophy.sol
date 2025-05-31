@@ -8,7 +8,7 @@ contract YetrisTrophy is ERC721, AccessControl {
     bytes32 public constant KING_MAKER = keccak256("KING_MAKER");
     uint256 private constant TOKEN_ID = 1;
     uint256 private constant MAX_SUPPLY = 1;
-    string private constant METADATA_URI = "ipfs://XYZ";
+    string private _metadataURI = "ipfs://";
 
     uint256 private _currentSupply;
 
@@ -22,7 +22,7 @@ contract YetrisTrophy is ERC721, AccessControl {
         uint256 tokenId
     ) public view override returns (string memory) {
         _requireOwned(tokenId);
-        return METADATA_URI;
+        return _metadataURI;
     }
 
     function coronation(
@@ -54,5 +54,11 @@ contract YetrisTrophy is ERC721, AccessControl {
         bytes4 interfaceId
     ) public view override(ERC721, AccessControl) returns (bool) {
         return super.supportsInterface(interfaceId);
+    }
+
+    function setMetadataURI(
+        string calldata newMetadataURI
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _metadataURI = newMetadataURI;
     }
 }
