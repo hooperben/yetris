@@ -20,7 +20,9 @@ export default function Home() {
 
   useEffect(() => {
     // Connect to WebSocket
-    const ws = new WebSocket("ws://localhost:8000");
+    const ws = new WebSocket(
+      process.env.NEXT_PUBLIC_BACKEND_SOCKET_URL ?? "ws://localhost:8000",
+    );
     wsRef.current = ws;
 
     ws.onopen = () => {
