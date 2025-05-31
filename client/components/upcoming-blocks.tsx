@@ -4,44 +4,41 @@ interface Props {
   upcomingBlocks: Block[];
 }
 
-// Define colors for each block type
+// Define Tailwind colors for each block type
 const BLOCK_COLORS: Record<Block, string> = {
-  [Block.I]: "#00f0f0", // Cyan
-  [Block.O]: "#f0f000", // Yellow
-  [Block.T]: "#a000f0", // Purple
-  [Block.S]: "#00f000", // Green
-  [Block.Z]: "#f00000", // Red
-  [Block.J]: "#0000f0", // Blue
-  [Block.L]: "#f0a000", // Orange
+  [Block.I]: "bg-cyan-500",
+  [Block.O]: "bg-yellow-500",
+  [Block.T]: "bg-violet-600",
+  [Block.S]: "bg-green-600",
+  [Block.Z]: "bg-red-600",
+  [Block.J]: "bg-blue-600",
+  [Block.L]: "bg-orange-600",
 };
 
 function UpcomingBlocks({ upcomingBlocks }: Props) {
   return (
-    <div className="upcoming">
+    <div className="w-40 flex flex-col gap-6 mt-6 p-4 bg-white/5 rounded-lg shadow-md">
       {upcomingBlocks.map((block, blockIndex) => {
         const shape = SHAPES[block].shape.filter((row) =>
           row.some((cell) => cell),
         );
-        const color = BLOCK_COLORS[block];
+        const colorClass = BLOCK_COLORS[block];
 
         return (
-          <div key={blockIndex} className="upcoming-block">
+          <div key={blockIndex} className="flex flex-col items-center">
             {shape.map((row, rowIndex) => {
               return (
-                <div key={rowIndex} className="upcoming-row">
+                <div key={rowIndex} className="flex justify-center">
                   {row.map((isSet, cellIndex) => {
                     return (
                       <div
                         key={`${blockIndex}-${rowIndex}-${cellIndex}`}
-                        className="upcoming-cell"
-                        style={{
-                          backgroundColor: isSet ? color : "transparent",
-                          border: isSet ? "1px solid #333" : "none",
-                          width: "20px",
-                          height: "20px",
-                          display: "inline-block",
-                        }}
-                      ></div>
+                        className={`w-5 h-5 inline-block ${
+                          isSet
+                            ? `${colorClass} border border-gray-600`
+                            : "transparent"
+                        }`}
+                      />
                     );
                   })}
                 </div>
