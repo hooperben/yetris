@@ -8,7 +8,7 @@ export const getAuthMessage = async () => {
     app_name: "http://localhost:3000/",
     expire: (Math.floor(Date.now() / 1000) + 3600).toString(), // 1 hour expiration
     scope: "console",
-    application: "0xYourApplicationAddress",
+    application: walletClient.account.address,
     allowances: [],
   });
 

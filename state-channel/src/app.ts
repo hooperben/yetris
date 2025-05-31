@@ -8,8 +8,10 @@ import * as middlewares from "./middlewares";
 import api from "./api";
 import MessageResponse from "./interfaces/MessageResponse";
 import { eip712MessageSigner, getAuthMessage } from "./nitro/ws";
-import { createAuthVerifyMessage } from "@erc7824/nitrolite";
+import { createAuthVerifyMessage, MessageSigner } from "@erc7824/nitrolite";
 import { walletClient } from "./constants";
+import { ethers } from "ethers";
+import { Hex } from "viem";
 
 require("dotenv").config();
 
@@ -45,7 +47,7 @@ ws.onopen = async () => {
 ws.onmessage = async (event) => {
   try {
     const message = JSON.parse(event?.data.toString());
-    console.log("Received message:", message);
+    console.log("Received message:", JSON.stringify(message, undefined, 2));
 
     if (message.res && message.res[1] === "auth_challenge") {
       console.log("Received auth challenge");
