@@ -17,7 +17,7 @@ const BLOCK_COLORS: Record<Block, string> = {
 
 function UpcomingBlocks({ upcomingBlocks }: Props) {
   return (
-    <div className="w-40 flex flex-col gap-6 mt-6 p-4 bg-white/5 rounded-lg shadow-md">
+    <div className="w-40 flex flex-col gap-6 p-4 bg-white/5 rounded-lg shadow-md">
       {upcomingBlocks.map((block, blockIndex) => {
         const shape = SHAPES[block].shape.filter((row) =>
           row.some((cell) => cell),

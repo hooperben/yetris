@@ -382,3 +382,13 @@ button:active {
   background-color: #dc2626;
   box-shadow: 0 0 12px rgba(220, 38, 38, 0.3), inset 0 -2px 0 rgba(0, 0, 0, 0.2);
 }
+
+html {
+  margin: 0;
+  padding: 0 !important;
+}
+
+body {
+  margin: 0 auto;
+  padding: 0px;
+}

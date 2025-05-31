@@ -295,6 +295,47 @@ export function useTetris() {
     };
   }, [dispatchBoardState, isPlaying]);
 
+  // Mobile control functions
+  const moveLeft = useCallback(() => {
+    if (!isPlaying) return;
+    dispatchBoardState({
+      type: "move",
+      isPressingLeft: true,
+      isPressingRight: false,
+    });
+  }, [dispatchBoardState, isPlaying]);
+
+  const moveRight = useCallback(() => {
+    if (!isPlaying) return;
+    dispatchBoardState({
+      type: "move",
+      isPressingLeft: false,
+      isPressingRight: true,
+    });
+  }, [dispatchBoardState, isPlaying]);
+
+  const rotate = useCallback(() => {
+    if (!isPlaying) return;
+    dispatchBoardState({
+      type: "move",
+      isRotating: true,
+    });
+  }, [dispatchBoardState, isPlaying]);
+
+  const softDrop = useCallback(() => {
+    if (!isPlaying) return;
+    setTickSpeed(TickSpeed.Fast);
+    // Reset to normal speed after a short delay
+    setTimeout(() => {
+      setTickSpeed(TickSpeed.Normal);
+    }, 100);
+  }, [isPlaying]);
+
+  const hardDrop = useCallback(() => {
+    if (!isPlaying) return;
+    setTickSpeed(TickSpeed.HardDrop);
+  }, [isPlaying]);
+
   const renderedBoard = structuredClone(board) as BoardShape;
   if (isPlaying) {
     addShapeToBoard(
@@ -316,6 +357,12 @@ export function useTetris() {
     nextBlock,
     isWsConnected,
     isLoadingBlocks,
+    // Mobile control functions
+    moveLeft,
+    moveRight,
+    rotate,
+    softDrop,
+    hardDrop,
   };
 }
 
