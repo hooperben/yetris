@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, useRef } from "react";
+import { useAccount, useSignMessage } from "wagmi";
 import { Block, BlockShape, BoardShape, EmptyCell, SHAPES } from "@/types";
 import { useInterval } from "@/hooks/use-interval";
 import {
@@ -31,6 +32,9 @@ export function useTetris() {
     { board, droppingRow, droppingColumn, droppingBlock, droppingShape },
     dispatchBoardState,
   ] = useTetrisBoard();
+
+  const { address } = useAccount();
+  const { signMessageAsync } = useSignMessage();
 
   // WebSocket connection setup
   useEffect(() => {
@@ -92,25 +96,46 @@ export function useTetris() {
     [dispatchBoardState],
   );
 
-  const startGame = useCallback(() => {
+  const startGame = useCallback(async () => {
     if (!isWsConnected || !wsRef.current) {
       console.error("WebSocket not connected");
       return;
     }
 
-    setScore(0);
-    setIsCommitting(false);
-    setIsPlaying(true);
-    setTickSpeed(TickSpeed.Normal);
-    setIsLoadingBlocks(true);
+    if (!address) {
+      console.error("Wallet not connected");
+      return;
+    }
 
-    // Request initial blocks from server
-    wsRef.current.send(
-      JSON.stringify({
-        type: "startGame",
-      }),
-    );
-  }, [isWsConnected]);
+    try {
+      // Create message to sign
+      const message = `Starting Tetris game at ${Date.now()}`;
+
+      // Sign the message
+      const signature = await signMessageAsync({ message });
+
+      setScore(0);
+      setIsCommitting(false);
+      setIsPlaying(true);
+      setTickSpeed(TickSpeed.Normal);
+      setIsLoadingBlocks(true);
+
+      // Request initial blocks from server with signed message
+      wsRef.current.send(
+        JSON.stringify({
+          type: "startGame",
+          address,
+          message,
+          signature,
+        }),
+      );
+    } catch (error) {
+      console.error("Failed to sign message:", error);
+      setIsLoadingBlocks(false);
+      setIsPlaying(false);
+      setTickSpeed(null);
+    }
+  }, [isWsConnected, address, signMessageAsync]);
 
   const commitPosition = useCallback(() => {
     if (!hasCollisions(board, droppingShape, droppingRow + 1, droppingColumn)) {

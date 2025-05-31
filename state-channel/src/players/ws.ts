@@ -1,6 +1,7 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { randomBytes } from "crypto";
 import { Server } from "http";
+import { ethers } from "ethers";
 
 export interface TetrisWebSocket extends WebSocket {
   playerId: string;
@@ -23,6 +24,7 @@ enum Block {
 interface GameState {
   gameId: string;
   playerId: string;
+  address: string;
   upcomingBlocks: Block[];
   isActive: boolean;
 }
@@ -42,16 +44,56 @@ async function handleWebSocketMessage(
     case "startGame": {
       console.log("start game web socket called");
 
+      // Extract signature data
+      const { address, message, signature } = data;
+
+      if (!address || !message || !signature) {
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            message: "address, message, and signature are required",
+          }),
+        );
+        return;
+      }
+
+      try {
+        // Verify the signature
+        const recoveredAddress = ethers.verifyMessage(message, signature);
+
+        if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
+          ws.send(
+            JSON.stringify({
+              type: "error",
+              message: "Invalid signature - signature does not match address",
+            }),
+          );
+          return;
+        }
+
+        console.log(`Signature verified for address: ${address}`);
+      } catch (error) {
+        console.error("Signature verification failed:", error);
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            message: "Signature verification failed",
+          }),
+        );
+        return;
+      }
+
       // Generate a new game ID
       const gameId = randomBytes(8).toString("hex");
 
       // Create initial upcoming blocks (just 2 to start - current and next)
       const initialBlocks = [getRandomBlock(), getRandomBlock()];
 
-      // Store the game
+      // Store the game with verified address
       games.set(gameId, {
         gameId,
         playerId: ws.playerId,
+        address: address.toLowerCase(),
         upcomingBlocks: initialBlocks,
         isActive: true,
       });

@@ -1,6 +1,7 @@
 "use client";
 
 import Board from "@/components/board";
+import ConnectWallet from "@/components/connect-wallet";
 import Navigation from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import UpcomingBlocks from "@/components/upcoming-blocks";
@@ -13,8 +14,11 @@ import {
   ChevronUp,
   RefreshCcw,
 } from "lucide-react";
+import { useAccount } from "wagmi";
 
 export default function Home() {
+  const { isConnected } = useAccount();
+
   const {
     board,
     startGame,
@@ -28,6 +32,17 @@ export default function Home() {
     softDrop,
     hardDrop,
   } = useTetris();
+
+  if (!isConnected) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+        <Navigation />
+        <div className="flex flex-col w-full items-center">
+          <ConnectWallet />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
@@ -60,13 +75,13 @@ export default function Home() {
               {/* Game Controls */}
               <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-xl p-6 border-2 border-purple-400/50 shadow-xl">
                 {!isPlaying ? (
-                  <button
+                  <Button
                     onClick={startGame}
                     disabled={!isWsConnected}
                     className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-4 rounded-xl font-bold text-xl shadow-[0_0_20px_rgba(168,85,247,0.6)] border-2 border-purple-300 hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     NEW GAME
-                  </button>
+                  </Button>
                 ) : (
                   <div className="space-y-3">
                     <h3 className="text-lg font-bold text-transparent bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text">

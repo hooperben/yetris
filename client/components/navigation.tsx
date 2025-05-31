@@ -3,6 +3,7 @@
 import { Home, Trophy } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Account } from "./account";
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -17,7 +18,7 @@ export default function Navigation() {
             </span>
           </div>
 
-          <div className="flex space-x-4">
+          <div className="flex space-x-4 items-center">
             {pathname !== "/" && (
               <Link
                 href="/"
@@ -37,6 +38,8 @@ export default function Navigation() {
                 <span>Leaderboard</span>
               </Link>
             )}
+
+            <Account />
           </div>
         </div>
       </div>
