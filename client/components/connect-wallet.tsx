@@ -1,13 +1,11 @@
 "use client";
 
-import { Account } from "./account";
-import { WalletOptions } from "./wallet-options";
-import { useAccount } from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 export default function ConnectWallet() {
-  const { isConnected } = useAccount();
-
-  if (isConnected) return <Account />;
-
-  return <WalletOptions />;
+  return (
+    <div className="flex flex-col w-full justify-center h-full items-center mt-24">
+      <ConnectButton />
+    </div>
+  );
 }

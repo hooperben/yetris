@@ -1,9 +1,9 @@
 "use client";
 
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Home, Trophy } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Account } from "./account";
 import { useAccount } from "wagmi";
 
 export default function Navigation() {
@@ -42,7 +42,7 @@ export default function Navigation() {
               </Link>
             )}
 
-            {isConnected && <Account />}
+            {isConnected && <ConnectButton />}
           </div>
         </div>
       </div>

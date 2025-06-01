@@ -1,6 +1,7 @@
+import { Providers } from "@/providers/providers";
+import "@rainbow-me/rainbowkit/styles.css";
 import type { Metadata } from "next";
 import "./globals.css";
-import { Providers } from "@/providers/providers";
 
 export const metadata: Metadata = {
   title: "Yetroid",
