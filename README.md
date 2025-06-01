@@ -43,12 +43,16 @@ sequenceDiagram
     Client->>PlayerWS: Connect to Player WebSocket
     PlayerWS->>PlayerWS: Generate playerId
     
-    %% Start Game
+    %% Start Game with Session Creation
     Client->>Client: Sign message with wallet
     Client->>PlayerWS: startGame {address, message, signature}
     PlayerWS->>PlayerWS: Verify signature with ethers.verifyMessage()
     PlayerWS->>PlayerWS: Generate gameId & initial blocks
-    PlayerWS->>Client: gameStarted {gameId, upcomingBlocks}
+    PlayerWS->>NitroWS: createApplicationSession(gameId)
+    NitroWS->>Broker: create_session {gameId, sessionType, participants}
+    Broker->>NitroWS: Session created response
+    NitroWS->>PlayerWS: Session result
+    PlayerWS->>Client: gameStarted {gameId, upcomingBlocks, sessionId}
     
     %% Game Loop
     loop During Game
@@ -58,7 +62,7 @@ sequenceDiagram
         PlayerWS->>Client: moveCompleted {gameId, upcomingBlocks}
     end
     
-    %% Game Over
+    %% Game Over with Session Termination
     Client->>PlayerWS: gameOver {gameId, score}
     PlayerWS->>PlayerWS: Validate game & mark inactive
     PlayerWS->>Contract: Read current high score
@@ -67,10 +71,14 @@ sequenceDiagram
     alt Score beats high score
         PlayerWS->>Contract: coronation(address, newScore)
         Contract->>PlayerWS: Return transaction hash
-        PlayerWS->>Client: gameEnded {gameId, coronationHash}
-    else Score doesn't beat high score
-        PlayerWS->>Client: gameEnded {gameId}
     end
+    
+    PlayerWS->>NitroWS: endApplicationSession(gameId)
+    NitroWS->>Broker: end_session {gameId}
+    Broker->>NitroWS: Session ended response
+    NitroWS->>PlayerWS: End session result
+    PlayerWS->>PlayerWS: Clean up game from memory
+    PlayerWS->>Client: gameEnded {gameId, coronationHash?}
     
     %% Cleanup
     Client->>PlayerWS: Disconnect
