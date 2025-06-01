@@ -34,6 +34,8 @@ export default function Home() {
     hardDrop,
     isGameOver,
     setIsGameOver,
+    coronationHash,
+    isNewChamp,
   } = useTetris();
 
   const handlePlayAgain = () => {
@@ -158,6 +160,8 @@ export default function Home() {
         onClose={handleCloseDialog}
         onPlayAgain={handlePlayAgain}
         score={score}
+        isNewChamp={isNewChamp}
+        coronationHash={coronationHash}
       />
 
       <div className="md:hidden flex flex-col">

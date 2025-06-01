@@ -25,6 +25,10 @@ export function useTetris() {
   const [gameId, setGameId] = useState<string | null>(null);
   const [isLoadingBlocks, setIsLoadingBlocks] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
+  const [coronationHash, setCoronationHash] = useState<string | undefined>(
+    undefined,
+  );
+  const [isNewChamp, setIsNewChamp] = useState(false);
 
   const wsRef = useRef<WebSocket | null>(null);
   const [isWsConnected, setIsWsConnected] = useState(false);
@@ -90,6 +94,14 @@ export function useTetris() {
           setIsLoadingBlocks(false);
           break;
 
+        case "gameEnded":
+          const { coronationHash: newCoronationHash } = data;
+          if (newCoronationHash) {
+            setCoronationHash(newCoronationHash);
+            setIsNewChamp(true);
+          }
+          break;
+
         case "error":
           console.error("WebSocket error:", data.message);
           setIsLoadingBlocks(false);
@@ -114,6 +126,8 @@ export function useTetris() {
       // Reset game over state when starting a new game
       setIsGameOver(false);
       setScore(0);
+      setCoronationHash(undefined);
+      setIsNewChamp(false);
 
       // Create message to sign
       const message = `Starting Tetris game at ${Date.now()}`;
@@ -396,6 +410,8 @@ export function useTetris() {
     isLoadingBlocks,
     isGameOver,
     setIsGameOver,
+    coronationHash,
+    isNewChamp,
     // Mobile control functions
     moveLeft,
     moveRight,

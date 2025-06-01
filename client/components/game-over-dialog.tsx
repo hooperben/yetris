@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { ExternalLink } from "lucide-react";
 
 interface GameOverDialogProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface GameOverDialogProps {
   onPlayAgain: () => void;
   score: number;
   isNewChamp?: boolean;
+  coronationHash?: string;
 }
 
 export function GameOverDialog({
@@ -22,6 +24,7 @@ export function GameOverDialog({
   onPlayAgain,
   score,
   isNewChamp,
+  coronationHash,
 }: GameOverDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -33,7 +36,8 @@ export function GameOverDialog({
                 🎉 Congratulations! 🎉
               </DialogTitle>
               <DialogDescription className="text-center text-lg">
-                You have won! What an amazing performance!
+                You are the new champion! Your coronation has been recorded
+                on-chain!
               </DialogDescription>
             </>
           ) : (
@@ -52,6 +56,31 @@ export function GameOverDialog({
           <div className="text-3xl font-bold text-transparent bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text">
             Final Score: {score.toLocaleString()}
           </div>
+
+          {coronationHash && (
+            <div className="mt-4 p-3 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+              <div className="text-sm font-medium text-yellow-800 dark:text-yellow-200 mb-2">
+                Coronation Transaction
+              </div>
+              <div className="text-xs font-mono text-gray-600 dark:text-gray-400 break-all mb-2">
+                {coronationHash}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() =>
+                  window.open(
+                    `https://polygonscan.com/tx/${coronationHash}`,
+                    "_blank",
+                  )
+                }
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                View on Polygonscan
+              </Button>
+            </div>
+          )}
         </div>
 
         <DialogFooter className="flex gap-2 sm:gap-2">

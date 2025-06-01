@@ -2,6 +2,9 @@ import { WebSocketServer, WebSocket } from "ws";
 import { randomBytes } from "crypto";
 import { Server } from "http";
 import { ethers } from "ethers";
+import { createPublicClient, createWalletClient, http } from "viem";
+import { polygon } from "viem/chains";
+import { privateKeyToAccount } from "viem/accounts";
 
 export interface TetrisWebSocket extends WebSocket {
   playerId: string;
@@ -180,11 +183,22 @@ async function handleWebSocketMessage(
       console.log("game over");
 
       const { gameId, score } = data;
+
       if (!gameId) {
         ws.send(
           JSON.stringify({
             type: "error",
             message: "gameId is required",
+          }),
+        );
+        return;
+      }
+
+      if (!score || typeof score !== "number") {
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            message: "score is required and must be a number",
           }),
         );
         return;
@@ -216,11 +230,79 @@ async function handleWebSocketMessage(
       game.isActive = false;
       games.set(gameId, game);
 
+      let coronationHash: string | undefined;
+
+      try {
+        // Check if score beats current high score and call coronation if it does
+        const publicClient = createPublicClient({
+          chain: polygon,
+          transport: http(),
+        });
+
+        const account = privateKeyToAccount(
+          process.env.PRIVATE_KEY as `0x${string}`,
+        );
+        const walletClient = createWalletClient({
+          account,
+          chain: polygon,
+          transport: http(),
+        });
+
+        const trophyAddress = "0x6d64b04A8ec0dceb6304CC56845C665Fd454a0F1";
+
+        // Read current high score
+        const currentHighScore = await publicClient.readContract({
+          address: trophyAddress,
+          abi: [
+            {
+              inputs: [],
+              name: "highScore",
+              outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+              stateMutability: "view",
+              type: "function",
+            },
+          ],
+          functionName: "highScore",
+        });
+
+        console.log("Current high score:", currentHighScore.toString());
+        console.log("Player score:", score);
+
+        // If player's score is higher, call coronation
+        if (BigInt(score) > currentHighScore) {
+          console.log("New high score! Calling coronation...");
+
+          coronationHash = await walletClient.writeContract({
+            address: trophyAddress,
+            abi: [
+              {
+                inputs: [
+                  { internalType: "address", name: "to", type: "address" },
+                  { internalType: "uint256", name: "newHigh", type: "uint256" },
+                ],
+                name: "coronation",
+                outputs: [],
+                stateMutability: "nonpayable",
+                type: "function",
+              },
+            ],
+            functionName: "coronation",
+            args: [game.address as `0x${string}`, BigInt(score)],
+          });
+
+          console.log("Coronation transaction hash:", coronationHash);
+        }
+      } catch (error) {
+        console.error("Error checking/updating high score:", error);
+        // Continue with game over response even if coronation fails
+      }
+
       // Send confirmation back to client
       ws.send(
         JSON.stringify({
           type: "gameEnded",
           gameId,
+          ...(coronationHash && { coronationHash }),
         }),
       );
 
