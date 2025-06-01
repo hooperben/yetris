@@ -163,21 +163,21 @@ export default function Home() {
       <div className="md:hidden flex flex-col">
         {/* Game Area - 80% of non-nav height */}
         <div
-          className="flex bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900"
-          style={{ height: "60vh" }}
+          className="flex bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 relative z-10"
+          style={{ height: "65vh" }}
         >
           {/* Game Board - Left side */}
-          <div className="flex-1 flex items-center justify-center overflow-hidden">
-            <div className="scale-75 origin-center">
+          <div className="flex-1 flex items-center justify-center overflow-hidden relative z-20">
+            <div className="scale-75 origin-center relative z-30">
               <Board currentBoard={board} />
             </div>
           </div>
         </div>
 
         {/* Mobile Controls - 20% of non-nav height */}
-        <div className="border-t-1 border-purple-400">
+        <div className="border-t-1 border-purple-400 relative z-10">
           {isPlaying && (
-            <div className="flex flex-row justify-center w-full">
+            <div className="flex flex-row justify-center w-full bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 py-2">
               <div className="h-full flex flex-col justify-center p-2">
                 <div className="flex justify-center">
                   <Button
@@ -259,7 +259,7 @@ export default function Home() {
 
         {/* Connection Status */}
         {!isWsConnected && (
-          <div className="absolute bottom-0 left-0 right-0 bg-yellow-600/90 text-center py-1">
+          <div className="fixed bottom-0 left-0 right-0 bg-yellow-600/90 text-center py-1 z-50">
             <p className="text-yellow-100 font-semibold text-xs">
               Connecting to server...
             </p>
