@@ -1,16 +1,16 @@
 # yetris
 
-yellow powered tetroids - who's the best player in the world? 
+yellow powered tetroids - who's the best player in the world?
 
 ## Components
 
 #### `client/`
 
-This is the nextJS app deployed to https://yetris.vercel.app.
+This is the nextJS app deployed to https://yetris.vercel.app. This contains a tetris app, [based on this youtube tutorial.](https://www.youtube.com/watch?v=UuzcvFVH4DQ)
 
 #### `state-channel`
 
-This is an expressJS app that facilitates the off chain tetris game state, and submits the high score to the chain in the event that it is beaten.
+This is an expressJS app that facilitates the off chain tetris game state, and submits the high score to the chain in the event that it is beaten. This is currently much more of a server than a state channel.
 
 #### `contracts`
 
@@ -42,7 +42,7 @@ sequenceDiagram
     Note over Client, PlayerWS: Game Communication
     Client->>PlayerWS: Connect to Player WebSocket
     PlayerWS->>PlayerWS: Generate playerId
-    
+
     %% Start Game with Session Creation
     Client->>Client: Sign message with wallet
     Client->>PlayerWS: startGame {address, message, signature}
@@ -53,7 +53,7 @@ sequenceDiagram
     Broker->>NitroWS: Session created response
     NitroWS->>PlayerWS: Session result
     PlayerWS->>Client: gameStarted {gameId, upcomingBlocks, sessionId}
-    
+
     %% Game Loop
     loop During Game
         Client->>PlayerWS: moveComplete {gameId}
@@ -61,25 +61,25 @@ sequenceDiagram
         PlayerWS->>PlayerWS: Shift blocks & add new random block
         PlayerWS->>Client: moveCompleted {gameId, upcomingBlocks}
     end
-    
+
     %% Game Over with Session Termination
     Client->>PlayerWS: gameOver {gameId, score}
     PlayerWS->>PlayerWS: Validate game & mark inactive
     PlayerWS->>Contract: Read current high score
     Contract->>PlayerWS: Return current high score
-    
+
     alt Score beats high score
         PlayerWS->>Contract: coronation(address, newScore)
         Contract->>PlayerWS: Return transaction hash
     end
-    
+
     PlayerWS->>NitroWS: endApplicationSession(gameId)
     NitroWS->>Broker: end_session {gameId}
     Broker->>NitroWS: Session ended response
     NitroWS->>PlayerWS: End session result
     PlayerWS->>PlayerWS: Clean up game from memory
     PlayerWS->>Client: gameEnded {gameId, coronationHash?}
-    
+
     %% Cleanup
     Client->>PlayerWS: Disconnect
     PlayerWS->>PlayerWS: Clean up player's games
