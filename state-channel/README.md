@@ -12,3 +12,8 @@ kubectl create configmap yetroid-config --from-env-file=.prod.env
 
 kubectl delete configmap yetroid-config
 ```
+
+### Known issues
+
+- need to migrate this from a server to more of a state channel
+- fix the game state sharing
